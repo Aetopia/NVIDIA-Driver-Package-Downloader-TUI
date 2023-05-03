@@ -1,5 +1,5 @@
-if ($Host.Name -ne "ConsoleHost") {
-    Start-Process "conhost.exe" -ArgumentList "powershell.exe -c `"Invoke-RestMethod 'https://raw.githubusercontent.com/Aetopia/NVIDIA-Driver-Package-Downloader-TUI/main/NVDPDTUI.ps1' | Invoke-Expression`""
+if ($Host.Name -ne "ConsoleHost" -or !(New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Start-Process "conhost.exe" -ArgumentList "powershell.exe -c `"Invoke-RestMethod 'https://raw.githubusercontent.com/Aetopia/NVIDIA-Driver-Package-Downloader-TUI/main/NVDPDTUI.ps1' | Invoke-Expression`"" -Verb "RunAs"
     return
 }
 Invoke-RestMethod "https://raw.githubusercontent.com/couleur-tweak-tips/TweakList/master/Master.ps1" | Invoke-Expression
