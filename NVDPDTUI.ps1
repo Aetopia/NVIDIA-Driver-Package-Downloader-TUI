@@ -1,11 +1,9 @@
 if ($Host.Name -ne "ConsoleHost"){
-    Start-Process "conhost.exe" -ArgumentList "powershell.exe -c '"
+    Start-Process "conhost.exe" -ArgumentList "powershell.exe -c `"Invoke-RestMethod 'https://raw.githubusercontent.com/Aetopia/NVIDIA-Driver-Package-Downloader-TUI/main/NVDPDTUI.ps1' | Invoke-Expression`""
+    return
 }
-Write-Host "Importing TweakList Functions..."
 Invoke-RestMethod "https://raw.githubusercontent.com/couleur-tweak-tips/TweakList/master/Master.ps1" | Invoke-Expression
-Write-Host "Importing NVIDIA Driver Package Downloader Functions..."
 Invoke-RestMethod "https://raw.githubusercontent.com/Aetopia/NVIDIA-Driver-Package-Downloader/main/NVDPD.ps1" |  Invoke-Expression
-Write-Host "Obtaining NVIDIA GPU Information..."
 $NvidiaGpu = Get-NvidiaGpu
 
 Function Invoke-DownloadMenu {
