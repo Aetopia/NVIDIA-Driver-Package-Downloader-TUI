@@ -1,4 +1,4 @@
-if ($Host.Name -ne "ConsoleHost"){
+if ($Host.Name -ne "ConsoleHost") {
     Start-Process "conhost.exe" -ArgumentList "powershell.exe -c `"Invoke-RestMethod 'https://raw.githubusercontent.com/Aetopia/NVIDIA-Driver-Package-Downloader-TUI/main/NVDPDTUI.ps1' | Invoke-Expression`""
     return
 }
@@ -10,7 +10,7 @@ Function Invoke-DownloadMenu {
     $DriverType = "Game Ready"
     $DriverPackageType = "DCH"
     $DriverVersions = { return Get-NvidiaDriverVersions $NvidiaGpu -Studio: ($DriverType -eq "Studio") -Standard: ($DriverPackageType -eq "Standard") }
-    $DriverPackageComponents = "Display Driver"
+    $DriverPackageComponentsString = "Display Driver"
     $DriverVersion = (& $DriverVersions)[0]
     $Loop = $True
 
@@ -20,7 +20,7 @@ Function Invoke-DownloadMenu {
                 "Driver Type: $DriverType", 
                 "Driver Package Type: $DriverPackageType", 
                 "Driver Version: $DriverVersion", 
-                "Driver Package Components: $DriverPackageComponents",
+                "Driver Package Components: $DriverPackageComponentsString",
                 "Accept", 
                 "Back") "NVIDIA Driver Package Downloader: Download") {
 
@@ -42,18 +42,23 @@ Function Invoke-DownloadMenu {
                 $DriverVersion = Write-Menu ((& $DriverVersions)) "Select Driver Version" 
             }
             "Driver Package Components*" {
-                $DriverPackageComponents = Write-Menu @("Display Driver",
+                $DriverPackageComponentsString = Write-Menu @("Display Driver",
                     "Display Driver + HD Audio", 
                     "Display Driver + PhysX", 
                     "Display Driver + HD Audio + PhysX", 
                     "All Driver Components") "Select Driver Package Components"
             }
             "Accept" {
-                $DriverType
-                $DriverPackageType
-                $DriverVersion
-                $DriverPackageComponents
-                return $True
+                $DriverPackageComponents = @()
+                $All = $False
+                switch ($DriverPackageComponentsString) {
+                    "Display Driver + HD Audio" { $DriverPackageComponents = @("HDAudio") }
+                    "Display Driver + PhysX" { $DriverPackageComponents = @("PhysX") }
+                    "Display Driver + HD Audio + PhysX" { $DriverPackageComponents = @("HDAudio", "PhysX") }
+                    "All Driver Components" { $All = $True }
+                }
+                Invoke-NvidiaDriverPackage $NvidiaGpu $DriverVersion -Studio: ($DriverType -eq "Studio") -Standard: ($DriverPackageType -eq "Standard") -Components: $DriverPackageComponents -All: $All
+                $Loop = $False
             }
             "Back" { $Loop = $False }
         }
@@ -88,7 +93,7 @@ Function Invoke-PropertiesMenu {
             "Apply" { 
                 Set-NvidiaGpuProperty DynamicPState $DynamicPState
                 Set-NvidiaGpuProperty HDCP $HDCP
-                if ((Write-Menu @("Yes", "No") "Reboot System to Apply Changes?") -eq "Yes"){shutdown.exe /r /t 0 /f}
+                if ((Write-Menu @("Yes", "No") "Reboot System to Apply Changes?") -eq "Yes") { shutdown.exe /r /t 0 /f }
             }
             "Back" { $Loop = $False }
         }
@@ -98,11 +103,9 @@ Function Invoke-PropertiesMenu {
 $Loop = $True
 while ($Loop) {
     switch (Write-Menu @("Download", 
-            "Extract",
             "Properties",
             "Exit") "NVIDIA Driver Package Downloader") {
         "Download" { Invoke-DownloadMenu }
-        "Extract" { "" }
         "Properties" { Invoke-PropertiesMenu }
         "Exit" { $Loop = $False }
     }
