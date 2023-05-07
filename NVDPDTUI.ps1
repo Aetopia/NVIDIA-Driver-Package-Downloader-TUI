@@ -52,12 +52,12 @@ Function Invoke-DownloadMenu {
                     "All Driver Components") "Select Driver Package Components" 
             }
             "Post Operation*" {
-                $PostOperationString = Write-Menu @("Download Only", "Launch NVIDIA Driver Setup", "Install NVIDIA Driver", "Open NVIDIA Driver Setup Folder") "Post Operation"
+                $PostOperationString = Write-Menu @("Nothing", "Launch NVIDIA Driver Setup", "Install NVIDIA Driver", "Open NVIDIA Driver Setup Folder") "Post Operation"
                 switch ($PostOperationString) {
+                    "Nothing" { $PostOperation = $Null }
                     "Launch NVIDIA Driver Setup" { $PostOperation = "Launch" }
                     "Install NVIDIA Driver" { $PostOperation = "Install" }
                     "Open NVIDIA Driver Setup Folder" { $PostOperation = "Open" } 
-                    "None" { $PostOperation = $Null }
                 }
             }
             "Accept" {
@@ -69,7 +69,7 @@ Function Invoke-DownloadMenu {
                     "Display Driver + HD Audio + PhysX" { $DriverPackageComponents = @("HDAudio", "PhysX") }
                     "All Driver Components" { $All = $True }
                 }
-                Invoke-NvidiaDriverPackage $NvidiaGpu $DriverVersion -Studio: ($DriverType -eq "Studio") -Standard: ($DriverPackageType -eq "Standard") -Components: $DriverPackageComponents -All: $All -Setup: $PostOperation
+                Invoke-NvidiaDriverPackage $NvidiaGpu $DriverVersion -Studio: ($DriverType -eq "Studio") -Standard: ($DriverPackageType -eq "Standard") -Components: $DriverPackageComponents -All: $All -Post: $PostOperation
                 $Loop = $False
             }
             "Back" { $Loop = $False }
