@@ -1,5 +1,5 @@
 if ($Host.Name -ne "ConsoleHost" -or !(New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Start-Process "conhost.exe" -ArgumentList "powershell.exe -c `"Invoke-RestMethod 'https://raw.githubusercontent.com/Aetopia/NVIDIA-Driver-Package-Downloader-TUI/main/NVDPDTUI.ps1' | Invoke-Expression`"" -Verb "RunAs"
+    Write-Error "Console Host not available." -ErrorAction Stop
     return
 }
 Invoke-RestMethod "https://raw.githubusercontent.com/couleur-tweak-tips/TweakList/master/Master.ps1" | Invoke-Expression
@@ -11,6 +11,8 @@ Function Invoke-DownloadMenu {
     $DriverPackageType = "DCH"
     $DriverVersions = { return Get-NvidiaDriverVersions $NvidiaGpu -Studio: ($DriverType -eq "Studio") -Standard: ($DriverPackageType -eq "Standard") }
     $DriverPackageComponentsString = "Display Driver"
+    $PostOperationString = "Nothing"
+    $PostOperation = $Null
     $DriverVersion = (& $DriverVersions)[0]
     $Loop = $True
 
@@ -21,6 +23,7 @@ Function Invoke-DownloadMenu {
                 "Driver Package Type: $DriverPackageType", 
                 "Driver Version: $DriverVersion", 
                 "Driver Package Components: $DriverPackageComponentsString",
+                "Post Operation: $PostOperationString",
                 "Accept", 
                 "Back") "NVIDIA Driver Package Downloader: Download") {
 
@@ -46,7 +49,16 @@ Function Invoke-DownloadMenu {
                     "Display Driver + HD Audio", 
                     "Display Driver + PhysX", 
                     "Display Driver + HD Audio + PhysX", 
-                    "All Driver Components") "Select Driver Package Components"
+                    "All Driver Components") "Select Driver Package Components" 
+            }
+            "Post Operation*" {
+                $PostOperationString = Write-Menu @("Download Only", "Launch NVIDIA Driver Setup", "Install NVIDIA Driver", "Open NVIDIA Driver Setup Folder") "Post Operation"
+                switch ($PostOperationString) {
+                    "Launch NVIDIA Driver Setup" { $PostOperation = "Launch" }
+                    "Install NVIDIA Driver" { $PostOperation = "Install" }
+                    "Open NVIDIA Driver Setup Folder" { $PostOperation = "Open" } 
+                    "None" { $PostOperation = $Null }
+                }
             }
             "Accept" {
                 $DriverPackageComponents = @()
@@ -57,7 +69,7 @@ Function Invoke-DownloadMenu {
                     "Display Driver + HD Audio + PhysX" { $DriverPackageComponents = @("HDAudio", "PhysX") }
                     "All Driver Components" { $All = $True }
                 }
-                Invoke-NvidiaDriverPackage $NvidiaGpu $DriverVersion -Studio: ($DriverType -eq "Studio") -Standard: ($DriverPackageType -eq "Standard") -Components: $DriverPackageComponents -All: $All
+                Invoke-NvidiaDriverPackage $NvidiaGpu $DriverVersion -Studio: ($DriverType -eq "Studio") -Standard: ($DriverPackageType -eq "Standard") -Components: $DriverPackageComponents -All: $All -Setup: $PostOperation
                 $Loop = $False
             }
             "Back" { $Loop = $False }
