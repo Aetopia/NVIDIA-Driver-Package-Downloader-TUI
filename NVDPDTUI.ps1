@@ -1,5 +1,5 @@
 if ($Host.Name -ne "ConsoleHost" -or !(New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Error "Console Host not available." -ErrorAction Stop
+    Write-Error "Console Host/Administrator Permissions not available." -ErrorAction Stop
     return
 }
 Invoke-RestMethod "https://raw.githubusercontent.com/couleur-tweak-tips/TweakList/master/Master.ps1" | Invoke-Expression
